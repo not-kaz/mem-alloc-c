@@ -2,7 +2,7 @@
 #include <string.h>
 #include "mem_arena.h"
 
-#define DEFAULT_ALIGNMENT (2 * sizeof(void *))
+#define DEFAULT_ALIGNMENT (sizeof(void *))
 
 void
 mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
@@ -27,32 +27,26 @@ mem_arena_finish(struct mem_arena *arena)
 void *
 mem_arena_alloc(struct mem_arena *arena, size_t size)
 {
-	uintptr_t base, offset, aligned_offset;
+	uintptr_t offset, mod;
 	void *ptr;
 
 	if (!arena || !size || size > arena->capacity) {
 		return NULL;
 	}
-	base = (uintptr_t) arena->buf;
-	offset = (uintptr_t) arena->curr_offset;
-	if (offset > UINTPTR_MAX - base) {
-		return NULL;
+	offset = (uintptr_t) arena->buf + arena->curr_offset;
+	mod = offset & (DEFAULT_ALIGNMENT - 1);
+	if (mod) {
+		offset += DEFAULT_ALIGNMENT - mod;
 	}
-	offset = base + offset;
-	aligned_offset = offset + (DEFAULT_ALIGNMENT - 1);
-	if (aligned_offset < offset) {
-		return NULL;
+	offset -= (uintptr_t) arena->buf;
+	if (offset + size <= arena->capacity) {
+		ptr = &arena->buf[offset];
+		arena->prev_offset = offset;
+		arena->curr_offset = offset + size;
+		memset(ptr, 0, size);
+		return ptr;
 	}
-	aligned_offset &= ~(DEFAULT_ALIGNMENT - 1);
-	aligned_offset -= base;
-	if (size > arena->capacity - aligned_offset) {
-		return NULL;
-	}
-	ptr = &arena->buf[aligned_offset];
-	arena->prev_offset = aligned_offset;
-	arena->curr_offset = aligned_offset + size;
-	memset(ptr, 0, size);
-	return ptr;
+	return NULL;
 }
 
 void
