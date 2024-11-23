@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "mem_pool.h"
+
 #define ALIGN_SIZE (sizeof(void *))
 #define IS_POWER_OF_TWO(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))
 
