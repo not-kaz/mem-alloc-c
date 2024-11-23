@@ -4,8 +4,7 @@
 
 #define DEFAULT_ALIGNMENT (sizeof(void *))
 
-void
-mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
+void mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
 {
 	if (!arena || !buf || !buf_size) {
 		return;
@@ -16,16 +15,14 @@ mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
 	arena->curr_offset = 0;
 }
 
-void
-mem_arena_finish(struct mem_arena *arena)
+void mem_arena_finish(struct mem_arena *arena)
 {
 	if (arena) {
 		memset(arena, 0, sizeof(struct mem_arena));
 	}
 }
 
-void *
-mem_arena_alloc(struct mem_arena *arena, size_t size)
+void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 {
 	uintptr_t offset, mod;
 	void *ptr;
@@ -49,8 +46,7 @@ mem_arena_alloc(struct mem_arena *arena, size_t size)
 	return NULL;
 }
 
-void
-mem_arena_reset(struct mem_arena *arena)
+void mem_arena_reset(struct mem_arena *arena)
 {
 	if (arena) {
 		arena->prev_offset = 0;
