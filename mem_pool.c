@@ -80,7 +80,6 @@ void mem_pool_free(struct mem_pool *pool, void *ptr)
 	if ((unsigned char *) ptr < start || (unsigned char *) ptr >= end) {
 		return;
 	}
-	// TODO: Make sure block_size is power of two.
 	if ((size_t) ((unsigned char *) ptr - start) & (pool->block_size - 1)) {
 		return;
 	}
