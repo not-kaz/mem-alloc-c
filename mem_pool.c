@@ -43,10 +43,10 @@ void mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 
 void mem_pool_finish(struct mem_pool *pool)
 {
-    if (!pool) {
-        return;
-    }
-    memset(pool, 0, sizeof(struct mem_pool));
+	if (!pool) {
+		return;
+	}
+	memset(pool, 0, sizeof(struct mem_pool));
 }
 
 void *mem_pool_alloc(struct mem_pool *pool)
@@ -91,5 +91,5 @@ void mem_pool_free(struct mem_pool *pool, void *ptr)
 
 size_t mem_pool_num_unused_blocks(struct mem_pool *pool)
 {
-    return pool && pool->buf ? pool->num_blocks - pool->num_used_blocks : 0;
+	return pool && pool->buf ? pool->num_blocks - pool->num_used_blocks : 0;
 }
