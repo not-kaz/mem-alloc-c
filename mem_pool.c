@@ -67,7 +67,7 @@ void *mem_pool_alloc(struct mem_pool *pool)
 void mem_pool_free(struct mem_pool *pool, void *ptr)
 {
 	struct mem_pool_node *node;
-	char *start, *end;
+	unsigned char *start, *end;
 
 	if (pool == NULL || pool->buf == NULL || ptr == NULL) {
 		return;
@@ -75,13 +75,13 @@ void mem_pool_free(struct mem_pool *pool, void *ptr)
 	if (!IS_POWER_OF_TWO(pool->block_size)) {
 		return;
 	}
-	start = (char *) pool->buf;
-	end = (char *) pool->buf + pool->buf_size;
-	if ((char *) ptr < start || (char *) ptr >= end) {
+	start = (unsigned char *) pool->buf;
+	end = (unsigned char *) pool->buf + pool->buf_size;
+	if ((unsigned char *) ptr < start || (unsigned char *) ptr >= end) {
 		return;
 	}
 	// TODO: Make sure block_size is power of two.
-	if ((size_t) ((char *) ptr - start) & (pool->block_size - 1)) {
+	if ((size_t) ((unsigned char *) ptr - start) & (pool->block_size - 1)) {
 		return;
 	}
 	node = (struct mem_pool_node *) ptr;
