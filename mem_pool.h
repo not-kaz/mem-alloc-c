@@ -21,6 +21,7 @@ void mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 void mem_pool_finish(struct mem_pool *pool);
 void *mem_pool_alloc(struct mem_pool *pool);
 void mem_pool_free(struct mem_pool *pool, void *ptr);
+void mem_pool_reset(struct mem_pool *pool);
 size_t mem_pool_num_unused_blocks(struct mem_pool *pool);
 
 #endif

@@ -89,6 +89,15 @@ void mem_pool_free(struct mem_pool *pool, void *ptr)
 	pool->num_used_blocks--;
 }
 
+void mem_pool_reset(struct mem_pool *pool)
+{
+	if (!pool || !pool->buf) {
+		return;
+	}
+	pool->num_used_blocks = 0;
+	reset_pool_free_list(pool);
+}
+
 size_t mem_pool_num_unused_blocks(struct mem_pool *pool)
 {
 	return pool && pool->buf ? pool->num_blocks - pool->num_used_blocks : 0;
