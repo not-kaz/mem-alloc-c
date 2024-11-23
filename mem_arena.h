@@ -1,5 +1,6 @@
 #ifndef MEM_ARENA_H
 #define MEM_ARENA_H
+
 #include <stddef.h>
 
 struct mem_arena {
