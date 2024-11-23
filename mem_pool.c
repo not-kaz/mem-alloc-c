@@ -1,87 +1,95 @@
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include "mem_pool.h"
+#define ALIGN_SIZE (sizeof(void *))
+#define IS_POWER_OF_TWO(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))
 
-#define DEFAULT_ALIGNMENT (sizeof(void *))
-#define ALIGN_FORWARD(x, alignment) \
-	if ((x) & ((alignment) - 1)) { \
-		(x) += (alignment) - ((x) & ((alignment) - 1)); \
-	}
-#define IS_POWER_OF_TWO(x) ((x) > 0 && (((x) & ((x) - 1)) == 0))
-#define IS_VALID_MEM_POOL(pool) \
-	((pool) && (pool->buf) && (pool->capacity) && (pool->chunk_size))
-
-void
-mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
-	size_t chunk_size)
+static void reset_pool_free_list(struct mem_pool *pool)
 {
-	uintptr_t start;
+	for (size_t i = 0; i < pool->num_blocks; i++) {
+		void *ptr = pool->buf + (pool->block_size * i);
+		struct mem_pool_node *node = (struct mem_pool_node *) ptr;
 
-	if (!pool || !buf_size || chunk_size > buf_size) {
-		return;
+		node->next = pool->free_list;
+		pool->free_list = node;
 	}
-	start = (uintptr_t) buf;
-	if (!IS_POWER_OF_TWO(DEFAULT_ALIGNMENT)) {
-		return;
-	}
-	ALIGN_FORWARD(start, DEFAULT_ALIGNMENT);
-	buf_size -= (size_t) (start - (uintptr_t) buf);
-	ALIGN_FORWARD(chunk_size, DEFAULT_ALIGNMENT);
-	if (chunk_size > buf_size) {
-		return;
-	}
-	pool->buf = (unsigned char *) buf;
-	pool->capacity = buf_size;
-	pool->chunk_size = chunk_size;
-	mem_pool_reset(pool);
 }
 
-void *
-mem_pool_alloc(struct mem_pool *pool)
+void mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
+	size_t block_size)
 {
-	struct mem_pool_list_node *node;
+	if (!pool || !buf || !buf_size) {
+		return;
+	}
+	if (block_size < sizeof(void *)) {
+		block_size = sizeof(void *);
+	}
+	block_size = (block_size + ALIGN_SIZE - 1) & ~(ALIGN_SIZE - 1);
+	if (!IS_POWER_OF_TWO(block_size)) {
+		return;
+	}
+	if (((uintptr_t) buf & (ALIGN_SIZE - 1)) != 0) {
+		return;
+	}
+	pool->buf = buf;
+	pool->buf_size = buf_size;
+	pool->block_size = block_size;
+	pool->num_blocks = buf_size / block_size;
+	pool->num_used_blocks = 0;
+	pool->free_list = NULL;
+	reset_pool_free_list(pool);
+}
 
-	if (!IS_VALID_MEM_POOL(pool) || !pool->free_list_head) {
+void mem_pool_finish(struct mem_pool *pool)
+{
+    if (!pool) {
+        return;
+    }
+    memset(pool, 0, sizeof(struct mem_pool));
+}
+
+void *mem_pool_alloc(struct mem_pool *pool)
+{
+	struct mem_pool_node *node;
+
+	node = pool->free_list;
+	if (node == NULL) {
 		return NULL;
 	}
-	node = pool->free_list_head;
-	pool->free_list_head = pool->free_list_head->next;
-	memset(node, 0, pool->chunk_size);
+	pool->free_list = pool->free_list->next;
+	memset(node, 0, pool->block_size);
+	pool->num_used_blocks++;
 	return node;
 }
 
-void
-mem_pool_reset(struct mem_pool *pool)
+void mem_pool_free(struct mem_pool *pool, void *ptr)
 {
-	if (!IS_VALID_MEM_POOL(pool)) {
+	struct mem_pool_node *node;
+	char *start, *end;
+
+	if (pool == NULL || pool->buf == NULL || ptr == NULL) {
 		return;
 	}
-	pool->free_list_head = NULL;
-	for (size_t i = 0; i < pool->capacity / pool->chunk_size; i++) {
-		void *ptr;
-		struct mem_pool_list_node *node;
-
-		ptr = &pool->buf[i * pool->chunk_size];
-		node = (struct mem_pool_list_node *) ptr;
-		node->next = pool->free_list_head;
-		pool->free_list_head = node;
+	if (!IS_POWER_OF_TWO(pool->block_size)) {
+		return;
 	}
+	start = (char *) pool->buf;
+	end = (char *) pool->buf + pool->buf_size;
+	if ((char *) ptr < start || (char *) ptr >= end) {
+		return;
+	}
+	// TODO: Make sure block_size is power of two.
+	if ((size_t) ((char *) ptr - start) & (pool->block_size - 1)) {
+		return;
+	}
+	node = (struct mem_pool_node *) ptr;
+	node->next = pool->free_list;
+	pool->free_list = node;
+	pool->num_used_blocks--;
 }
 
-size_t
-mem_pool_calc_free_chunks(struct mem_pool *pool)
+size_t mem_pool_num_unused_blocks(struct mem_pool *pool)
 {
-	struct mem_pool_list_node *curr = NULL;
-	size_t count = 0;
-
-	if (!IS_VALID_MEM_POOL(pool)) {
-		return 0;
-	}
-	curr = pool->free_list_head;
-	while (curr) {
-		count++;
-		curr = curr->next;
-	}
-	return count;
+    return pool && pool->buf ? pool->num_blocks - pool->num_used_blocks : 0;
 }
