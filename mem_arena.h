@@ -4,7 +4,7 @@
 
 struct mem_arena {
 	unsigned char *buf;
-	size_t capacity;
+	size_t size;
 	size_t prev_offset;
 	size_t curr_offset;
 };

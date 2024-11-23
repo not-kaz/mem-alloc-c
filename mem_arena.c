@@ -10,7 +10,7 @@ void mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
 		return;
 	}
 	arena->buf = (unsigned char *) buf;
-	arena->capacity = buf_size;
+	arena->size = buf_size;
 	arena->prev_offset = 0;
 	arena->curr_offset = 0;
 }
@@ -27,7 +27,7 @@ void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 	uintptr_t offset, mod;
 	void *ptr;
 
-	if (!arena || !size || size > arena->capacity) {
+	if (!arena || !size || size > arena->size) {
 		return NULL;
 	}
 	offset = (uintptr_t) arena->buf + arena->curr_offset;
@@ -36,7 +36,7 @@ void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 		offset += DEFAULT_ALIGNMENT - mod;
 	}
 	offset -= (uintptr_t) arena->buf;
-	if (offset + size <= arena->capacity) {
+	if (offset + size <= arena->size) {
 		ptr = &arena->buf[offset];
 		arena->prev_offset = offset;
 		arena->curr_offset = offset + size;
