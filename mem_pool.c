@@ -9,7 +9,7 @@
 static void reset_pool_free_list(struct mem_pool *pool)
 {
 	for (size_t i = 0; i < pool->num_blocks; i++) {
-		void *ptr = pool->buf + (pool->block_size * i);
+		void *ptr = pool->buffer + (pool->block_size * i);
 		struct mem_pool_node *node = (struct mem_pool_node *) ptr;
 
 		node->next = pool->free_list;
@@ -17,29 +17,30 @@ static void reset_pool_free_list(struct mem_pool *pool)
 	}
 }
 
-void mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
+int mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 	size_t block_size)
 {
 	if (!pool || !buf || !buf_size) {
-		return;
+		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	if (block_size < sizeof(void *)) {
 		block_size = sizeof(void *);
 	}
 	block_size = (block_size + ALIGN_SIZE - 1) & ~(ALIGN_SIZE - 1);
 	if (!IS_POWER_OF_TWO(block_size)) {
-		return;
+		return MEM_POOL_RESULT_BAD_ALIGNMENT;
 	}
 	if (((uintptr_t) buf & (ALIGN_SIZE - 1)) != 0) {
-		return;
+		return MEM_POOL_RESULT_BAD_ALIGNMENT;
 	}
-	pool->buf = buf;
-	pool->buf_size = buf_size;
+	pool->buffer = buf;
+	pool->buffer_size= buf_size;
 	pool->block_size = block_size;
 	pool->num_blocks = buf_size / block_size;
 	pool->num_used_blocks = 0;
 	pool->free_list = NULL;
 	reset_pool_free_list(pool);
+	return MEM_POOL_RESULT_OK;
 }
 
 void mem_pool_finish(struct mem_pool *pool)
@@ -64,41 +65,43 @@ void *mem_pool_alloc(struct mem_pool *pool)
 	return node;
 }
 
-void mem_pool_free(struct mem_pool *pool, void *ptr)
+int mem_pool_free(struct mem_pool *pool, void *ptr)
 {
 	struct mem_pool_node *node;
 	unsigned char *start, *end;
 
-	if (pool == NULL || pool->buf == NULL || ptr == NULL) {
-		return;
+	if (pool == NULL || pool->buffer == NULL || ptr == NULL) {
+		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	if (!IS_POWER_OF_TWO(pool->block_size)) {
-		return;
+		return MEM_POOL_RESULT_INVALID_ARG;
 	}
-	start = (unsigned char *) pool->buf;
-	end = (unsigned char *) pool->buf + pool->buf_size;
+	start = (unsigned char *) pool->buffer;
+	end = (unsigned char *) pool->buffer + pool->buffer_size;
 	if ((unsigned char *) ptr < start || (unsigned char *) ptr >= end) {
-		return;
+		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	if ((size_t) ((unsigned char *) ptr - start) & (pool->block_size - 1)) {
-		return;
+		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	node = (struct mem_pool_node *) ptr;
 	node->next = pool->free_list;
 	pool->free_list = node;
 	pool->num_used_blocks--;
+	return MEM_POOL_RESULT_OK;
 }
 
-void mem_pool_reset(struct mem_pool *pool)
+int mem_pool_reset(struct mem_pool *pool)
 {
-	if (!pool || !pool->buf) {
-		return;
+	if (!pool || !pool->buffer) {
+		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	pool->num_used_blocks = 0;
 	reset_pool_free_list(pool);
+	return MEM_POOL_RESULT_OK;
 }
 
 size_t mem_pool_num_unused_blocks(struct mem_pool *pool)
 {
-	return pool && pool->buf ? pool->num_blocks - pool->num_used_blocks : 0;
+	return pool && pool->buffer ? pool->num_blocks - pool->num_used_blocks : 0;
 }
