@@ -3,7 +3,7 @@
 #include <string.h>
 #include "mem_pool.h"
 
-#define ALIGN_SIZE (sizeof(void *))
+#define ALIGNMENT (sizeof(void *))
 #define IS_POWER_OF_TWO(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))
 
 static void reset_pool_free_list(struct mem_pool *pool)
@@ -26,11 +26,11 @@ int mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 	if (block_size < sizeof(void *)) {
 		block_size = sizeof(void *);
 	}
-	block_size = (block_size + ALIGN_SIZE - 1u) & ~(ALIGN_SIZE - 1u);
+	block_size = (block_size + ALIGNMENT - 1u) & ~(ALIGNMENT - 1u);
 	if (!IS_POWER_OF_TWO(block_size)) {
 		return MEM_POOL_RESULT_BAD_ALIGNMENT;
 	}
-	if (((uintptr_t) buf & (ALIGN_SIZE - 1u)) != 0u) {
+	if (((uintptr_t) buf & (ALIGNMENT - 1u)) != 0u) {
 		return MEM_POOL_RESULT_BAD_ALIGNMENT;
 	}
 	pool->buffer = buf;
