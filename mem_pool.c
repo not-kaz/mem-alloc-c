@@ -55,10 +55,10 @@ void *mem_pool_alloc(struct mem_pool *pool)
 {
 	struct mem_pool_node *node;
 
-	node = pool->free_list;
-	if (node == NULL) {
+	if (pool == NULL || pool->buffer == NULL || pool->free_list == NULL) {
 		return NULL;
 	}
+	node = pool->free_list;
 	pool->free_list = pool->free_list->next;
 	memset(node, 0, pool->block_size);
 	pool->num_used_blocks++;
