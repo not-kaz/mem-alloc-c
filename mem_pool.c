@@ -73,7 +73,7 @@ int mem_pool_free(struct mem_pool *pool, void *ptr)
 	if (pool == NULL || pool->buffer == NULL || ptr == NULL) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
-	if (IS_POWER_OF_TWO(pool->block_size) == 0) {
+	if (!IS_POWER_OF_TWO(pool->block_size)) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	start = (unsigned char *) pool->buffer;
