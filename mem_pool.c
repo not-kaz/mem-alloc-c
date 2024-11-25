@@ -20,7 +20,7 @@ static void reset_pool_free_list(struct mem_pool *pool)
 int mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 	size_t block_size)
 {
-	if (!pool || !buf || !buf_size) {
+	if (pool == NULL || buf == NULL || buf_size == NULL) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	if (block_size < sizeof(void *)) {
@@ -30,7 +30,7 @@ int mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 	if (!IS_POWER_OF_TWO(block_size)) {
 		return MEM_POOL_RESULT_BAD_ALIGNMENT;
 	}
-	if (((uintptr_t) buf & (ALIGN_SIZE - 1)) != 0) {
+	if (((uintptr_t) buf & (ALIGN_SIZE - 1u)) != 0u) {
 		return MEM_POOL_RESULT_BAD_ALIGNMENT;
 	}
 	pool->buffer = buf;
@@ -45,7 +45,7 @@ int mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 
 void mem_pool_finish(struct mem_pool *pool)
 {
-	if (!pool) {
+	if (pool == NULL) {
 		return;
 	}
 	memset(pool, 0, sizeof(struct mem_pool));
@@ -73,7 +73,7 @@ int mem_pool_free(struct mem_pool *pool, void *ptr)
 	if (pool == NULL || pool->buffer == NULL || ptr == NULL) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
-	if (!IS_POWER_OF_TWO(pool->block_size)) {
+	if (IS_POWER_OF_TWO(pool->block_size) == 0) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	start = (unsigned char *) pool->buffer;
@@ -93,7 +93,7 @@ int mem_pool_free(struct mem_pool *pool, void *ptr)
 
 int mem_pool_reset(struct mem_pool *pool)
 {
-	if (!pool || !pool->buffer) {
+	if (pool == NULL || pool->buffer == NULL) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	pool->num_used_blocks = 0u;
