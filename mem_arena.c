@@ -25,7 +25,6 @@ void mem_arena_finish(struct mem_arena *arena)
 void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 {
 	uintptr_t offset, mod;
-	void *ptr;
 
 	if (!arena || !size || size > arena->buffer_size) {
 		return NULL;
@@ -37,7 +36,8 @@ void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 	}
 	offset -= (uintptr_t) arena->buffer;
 	if (offset + size <= arena->buffer_size) {
-		ptr = &arena->buffer[offset];
+		void *ptr = &arena->buffer[offset];
+
 		arena->curr_offset = offset + size;
 		memset(ptr, 0, size);
 		return ptr;
