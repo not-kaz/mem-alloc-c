@@ -2,7 +2,7 @@
 #include <string.h>
 #include "mem_arena.h"
 
-#define DEFAULT_ALIGNMENT (sizeof(void *))
+#define ALIGNMENT (sizeof(void *))
 
 int mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
 {
@@ -30,9 +30,9 @@ void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 		return NULL;
 	}
 	offset = (uintptr_t) arena->buffer + arena->curr_offset;
-	mod = offset & (DEFAULT_ALIGNMENT - 1);
+	mod = offset & (ALIGNMENT - 1);
 	if (mod) {
-		offset += DEFAULT_ALIGNMENT - mod;
+		offset += ALIGNMENT - mod;
 	}
 	offset -= (uintptr_t) arena->buffer;
 	if (offset + size <= arena->buffer_size) {
