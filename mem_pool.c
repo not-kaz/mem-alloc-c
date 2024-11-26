@@ -20,7 +20,7 @@ static void reset_pool_free_list(struct mem_pool *pool)
 int mem_pool_init(struct mem_pool *pool, void *buf, size_t buf_size,
 	size_t block_size)
 {
-	if (pool == NULL || buf == NULL || buf_size != 0u) {
+	if (pool == NULL || buf == NULL || buf_size == 0u) {
 		return MEM_POOL_RESULT_INVALID_ARG;
 	}
 	if (block_size < sizeof(void *)) {
