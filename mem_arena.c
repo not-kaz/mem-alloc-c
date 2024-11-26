@@ -6,7 +6,7 @@
 
 int mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
 {
-	if (!arena || !buf || !buf_size) {
+	if (arena == NULL || buf == NULL || buf_size == 0u) {
 		return MEM_ARENA_RESULT_INVALID_ARG;
 	}
 	arena->buffer = (unsigned char *) buf;
@@ -17,7 +17,7 @@ int mem_arena_init(struct mem_arena *arena, void *buf, size_t buf_size)
 
 void mem_arena_finish(struct mem_arena *arena)
 {
-	if (arena) {
+	if (arena != NULL) {
 		memset(arena, 0, sizeof(struct mem_arena));
 	}
 }
@@ -26,7 +26,7 @@ void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 {
 	uintptr_t offset, mod;
 
-	if (!arena || !size || size > arena->buffer_size) {
+	if (arena == NULL || size == 0u || size > arena->buffer_size) {
 		return NULL;
 	}
 	offset = (uintptr_t) arena->buffer + arena->curr_offset;
@@ -47,7 +47,7 @@ void *mem_arena_alloc(struct mem_arena *arena, size_t size)
 
 void mem_arena_reset(struct mem_arena *arena)
 {
-	if (arena) {
+	if (arena != NULL) {
 		arena->curr_offset = 0;
 	}
 }
